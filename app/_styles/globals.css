@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #f2f2f2;
+    --surface: #fff;
+    --text-primary: #333;
+    --text-secondary: #71717a;
+    --primary: #0ea5e9;
+    --border: #d6d3d1;
+
+    --chatbg-default: #f2f2f2;
+    --chatbg-stone: #d6d3d1;
+    --chatbg-neutral: #d4d4d4;
+    --chatbg-zinc: #d4d4d8;
+    --chatbg-gray: #d1d5db;
+
+    /* Light mode */
+    --sidebar-bg: #f2f3f5;
+    --sidebar-secondary: #ebedef;
+    --sidebar-hover: #e3e5e8;
+    --sidebar-active: #93c5fd;
+    --sidebar-muted: #6a7480;
+    --sidebar-divider: #e3e5e8;
+  }
+
+  .dark {
+    --background: #222;
+    --surface: #333;
+    --text-primary: #e4e4e4;
+    --text-secondary: #a1a1aa;
+    --primary: #0ea5e9;
+    --border: #44403c;
+
+    --chatbg-default: #222;
+    --chatbg-stone: #44403c;
+    --chatbg-neutral: #404040;
+    --chatbg-zinc: #3f3f46;
+    --chatbg-gray: #374151;
+
+    /* Dark mode
+    --sidebar-bg: #2b2d31;
+    */
+    --sidebar-bg: #333;
+    --sidebar-secondary: #232428;
+    --sidebar-hover: #35373c;
+    --sidebar-active: #1e3a8a;
+    --sidebar-muted: #949ba4;
+    --sidebar-divider: #35373c;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-text-primary transition-colors duration-200;
+  }
+
+  /* Scrollbar Styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 4px;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: var(--sidebar-hover);
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .dark * {
+    scrollbar-color: var(--sidebar-hover) transparent;
+  }
+}
+.tooltip-container .tooltip-diff-arrow {
+  color: var(--text-secondary);
+  background-color: var(--surface);
+  border-radius: 11px;
+  padding: 8px 12px;
+}
+
+.tooltip-container .tooltip-diff-arrow .tooltip-arrow {
+  background-color: var(--surface);
+}
+
+@layer components {
+  .spinner {
+    width: 3.25em;
+    transform-origin: center;
+    animation: rotate4 2s linear infinite;
+  }
+
+  .spinner-circle {
+    fill: none;
+    stroke: hsl(214, 97%, 59%);
+    stroke-width: 2;
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+    stroke-linecap: round;
+    animation: dash4 1.5s ease-in-out infinite;
+  }
+
+  @keyframes rotate4 {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes dash4 {
+    0% {
+      stroke-dasharray: 1, 200;
+      stroke-dashoffset: 0;
+    }
+
+    50% {
+      stroke-dasharray: 90, 200;
+      stroke-dashoffset: -35px;
+    }
+
+    100% {
+      stroke-dashoffset: -125px;
+    }
+  }
+}
