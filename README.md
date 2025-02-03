@@ -1,28 +1,18 @@
 ## NextAuth.js with Google OAuth
 
-npm i next-auth@beta
+- npm i next-auth@beta
+- used https://generate-secret.vercel.app/ to create next auth secret key.
 
-On google developer console, on OAuth consent screen, publish the app so other users can log in.
+# Developer console
 
-Used generate secret key by vercel to create next auth secret key.
+- on OAuth consent screen, publish the app so other users can log in.
 
-# Change these urls when app is deployed on some domain
+Change these urls when app is deployed on some domain:
 
-Authorized JavaScript origins: http://localhost:3000
-Authorized redirect URIs: http://localhost:3000/api/auth/callback/google
+- Authorized JavaScript origins: http://localhost:3000
+- Authorized redirect URIs: http://localhost:3000/api/auth/callback/google
 
-Real time updates
-useEffect(() => {
-const subscription = supabase
-.from('contacts')
-.on('\*', payload => {
-console.log('Change received!', payload);
-// Update your UI based on the payload
-})
-.subscribe();
+# Supabase
 
-    return () => {
-      supabase.removeSubscription(subscription);
-    };
-
-}, []);
+- Added realtime updates
+- on storage.objects crate RLS policies to allow anon users to upload to a storage bucket

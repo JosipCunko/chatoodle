@@ -1,5 +1,5 @@
 "use client";
-import { memo, useState } from "react";
+import { useState } from "react";
 import {
   formatDayHeader,
   groupMessagesByDay,
@@ -7,44 +7,74 @@ import {
   formatMessageDate,
 } from "../_lib/utils";
 import { updateMessageEmojiAction } from "@/app/_lib/actions";
+import Image from "next/image";
 
 const EMOJI_LIST = ["👍", "😀", "😭", "❌", "🤡"];
 
 function Messages({
   selectedContact,
+  selectedGroup,
   messages,
   currentUserId,
   customBackground,
   chatBackground,
   messagesEndRef,
 }) {
+  //Set to onClick
   const [hoveredMessageId, setHoveredMessageId] = useState(null);
+
+  async function handleSubmitEmoji(emoji, messageId) {
+    const formData = new FormData();
+    formData.append("messageId", messageId);
+    formData.append("emoji", emoji);
+
+    const response = await updateMessageEmojiAction(formData);
+
+    if (response.error) {
+      console.error("Failed to update emoji:", response.error);
+    }
+  }
+
+  // Return null if neither contact nor group is selected
+  if (!selectedContact && !selectedGroup) return null;
 
   return (
     <>
-      <div className="p-4 border-b border-border ">
+      <div className="p-4 border-b border-border">
         <h2 className="text-xl font-semibold text-text-primary">
-          {selectedContact.username}
+          {selectedContact?.username || selectedGroup?.groupName}
         </h2>
-        <p className="text-sm text-text-secondary">{selectedContact.status}</p>
+        {selectedContact && (
+          <p className="text-sm text-text-secondary">
+            {selectedContact.status}
+          </p>
+        )}
+        {selectedGroup && (
+          <p className="text-sm text-text-secondary">
+            {selectedGroup.users?.length || 0} members
+          </p>
+        )}
       </div>
       <div
-        className={`flex-1 overflow-y-auto p-4 space-y-4 ${chatBackground}`}
+        className={`flex-1 overflow-y-auto p-4 space-y-4 ${
+          customBackground ? "bg-custom" : chatBackground
+        }`}
         style={
-          chatBackground === "bg-custom" && customBackground
+          customBackground
             ? {
                 backgroundImage: `url(${customBackground})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }
-            : undefined
+            : {}
         }
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center mx-auto mt-[2rem]">
             <p className="text-text-secondary text-lg">No messages yet.</p>
             <p className="text-text-secondary">
-              Go on, start chatting with {selectedContact.username}
+              Go on, start chatting with{" "}
+              {selectedContact?.username || selectedGroup?.groupName}
             </p>
           </div>
         ) : (
@@ -71,16 +101,14 @@ function Messages({
                   return (
                     <div
                       key={`${message.messageId}-${index}`}
-                      className="relative group "
-                      onMouseEnter={() =>
-                        setHoveredMessageId(message.messageId)
-                      }
+                      className="relative group"
+                      onClick={() => setHoveredMessageId(message.messageId)}
                       onMouseLeave={() => setHoveredMessageId(null)}
                     >
                       {/* Emoji Reaction Menu */}
                       {hoveredMessageId === message.messageId && (
                         <div
-                          className={`absolute -top-8 left-0 right-0 flex ${
+                          className={`absolute z-10 -top-8 left-0 right-0 flex ${
                             isFromCurrentUser ? "justify-end" : "justify-start"
                           } `}
                         >
@@ -89,68 +117,64 @@ function Messages({
                           "
                           >
                             {EMOJI_LIST.map((emoji) => (
-                              <form
+                              <button
                                 key={emoji}
-                                action={updateMessageEmojiAction}
+                                onClick={() =>
+                                  handleSubmitEmoji(emoji, message.messageId)
+                                }
+                                className={`hover:bg-primary-500 rounded-full p-1 transition-colors ${
+                                  message.emoji === emoji
+                                    ? "bg-primary-500"
+                                    : ""
+                                }`}
                               >
-                                <input
-                                  type="hidden"
-                                  value={message.messageId}
-                                  name="messageId"
-                                />
-                                <input
-                                  type="hidden"
-                                  value={emoji}
-                                  name="emoji"
-                                />
-
-                                <button
-                                  type="submit"
-                                  className={`hover:bg-primary-500 rounded-full p-1 transition-colors ${
-                                    message.emoji === emoji ? "bg-accent" : ""
-                                  }`}
-                                >
-                                  {emoji}
-                                </button>
-                              </form>
+                                {emoji}
+                              </button>
                             ))}
                           </div>
                         </div>
                       )}
 
                       <div
-                        className={`flex ${
-                          isFromCurrentUser ? "justify-end" : "justify-start"
-                        } ${shouldCombine ? "mt-0.5" : "mt-4"}`}
+                        className={`flex
+                          ${
+                            isFromCurrentUser ? "justify-end" : "justify-start"
+                          } ${shouldCombine ? "mt-0.5" : "mt-4"}`}
                       >
                         <div
-                          className={`max-w-xs px-4 py-2 rounded-lg ${
-                            isFromCurrentUser
-                              ? "bg-primary text-white rounded-br-none"
-                              : "bg-surface text-text-primary border border-border rounded-bl-none"
-                          } ${shouldCombine ? "rounded-t-lg" : ""}`}
+                          className={`max-w-xs px-4 py-2 rounded-lg
+                          relative 
+                            ${
+                              isFromCurrentUser
+                                ? "bg-primary text-white rounded-br-none"
+                                : "bg-surface text-text-primary border border-border rounded-bl-none"
+                            } ${shouldCombine ? "rounded-t-lg" : ""}`}
                         >
                           {message.content && (
                             <p className="text-sm">{message.content}</p>
                           )}
                           {message.media_url && (
-                            <img
+                            <Image
                               src={message.media_url}
+                              width={200}
+                              height={75}
                               alt="Shared image"
-                              className="rounded-lg max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+                              className="rounded-lg cursor-pointer hover:opacity-90 transition-opacity object-cover"
                               loading="lazy"
-                              onError={(e) => {
-                                console.error(
-                                  "Image failed to load:",
-                                  message.media_url
-                                );
-                                e.target.style.display = "none";
-                              }}
                             />
                           )}
+
                           {message.emoji && (
-                            <div className="text-xs mt-1">{message.emoji}</div>
+                            <div
+                              className={`text-base
+                                  bg-surface border border-border rounded-full px-2 py-1 shadow-lg
+                                absolute -top-5
+                                ${isFromCurrentUser ? "-left-4" : "-right-4"}`}
+                            >
+                              {message.emoji}
+                            </div>
                           )}
+
                           {!nextMessageCombines && (
                             <p
                               className={`text-xs mt-1 ${

@@ -2,15 +2,9 @@ import { Users } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { getLastMessageForContact } from "../_lib/data-service";
+import StatusIndicator from "./StatusIndicator";
 
 function ContactUser({ name, status, avatar, currentUserId, contactUserId }) {
-  const statusColor =
-    status === "online"
-      ? "bg-green-400"
-      : status === "away"
-      ? "bg-yellow-400"
-      : "bg-stone-400";
-
   const [lastMessage, setLastMessage] = useState("");
 
   useEffect(() => {
@@ -37,16 +31,19 @@ function ContactUser({ name, status, avatar, currentUserId, contactUserId }) {
   return (
     <li className="px-4 py-3 cursor-pointer transition duration-300 ease-in-out">
       <div className="flex items-center">
-        <div className="flex-shrink-0 relative h-8 w-8">
+        <div className="flex-shrink-0 relative h-8 w-8  ">
           {avatar ? (
-            <Image
-              src={avatar}
-              alt={name}
-              fill
-              sizes="32px"
-              className="rounded-full object-cover"
-              priority
-            />
+            <>
+              <Image
+                src={avatar}
+                alt={name}
+                fill
+                sizes="32px"
+                className="rounded-full object-cover"
+                priority
+              />
+              <StatusIndicator userId={contactUserId} />
+            </>
           ) : (
             <Users className="h-8 w-8 rounded-full bg-primary p-1 text-surface" />
           )}

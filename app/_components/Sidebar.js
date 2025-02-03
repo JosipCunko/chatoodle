@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Settings, Plus, User, Users, Zap } from "lucide-react";
+import { Search, Settings, Plus, User, Bot } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -9,28 +9,23 @@ import ContactUser from "./ContactUser";
 import CreateContactForm from "./CreateContactForm";
 import { useGlobalContext } from "./GlobalContextProvider";
 import { Tooltip } from "react-tooltip";
+import StatusIndicator from "./StatusIndicator";
 
 export default function Sidebar({ currentUser }) {
   const pathname = usePathname();
-  const { selectedContact, setSelectedContact } = useGlobalContext();
+  const { selectedContact, setSelectedContact, setSelectedGroup } =
+    useGlobalContext();
   const [showContactForm, setShowContactForm] = useState(false);
   const [filteredContacts, setFilteredContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const navItems = [
     {
-      icon: Users,
-      label: "Friends",
-      path: "/friends",
-      tooltip: "Your friends list",
+      icon: Bot,
+      label: "Chatoodle AI",
+      path: "/ai",
+      tooltip: "Chat with our AI model",
     },
-    {
-      icon: Zap,
-      label: "Premium",
-      path: "/premium",
-      tooltip: "See some premium offers",
-    },
-    ,
   ];
 
   useEffect(() => {
@@ -104,13 +99,14 @@ export default function Sidebar({ currentUser }) {
                   {filteredContacts.map((contact) => (
                     <div
                       key={contact.userId}
-                      onClick={() =>
+                      onClick={() => {
                         setSelectedContact(
                           contact.userId === selectedContact?.userId
                             ? null
                             : contact
-                        )
-                      }
+                        );
+                        setSelectedGroup(null);
+                      }}
                       className={` cursor-pointer ${
                         contact.userId === selectedContact?.userId
                           ? "bg-sidebar-active"
@@ -146,18 +142,21 @@ export default function Sidebar({ currentUser }) {
         <div className="border-t border-sidebar-divider p-2 bg-sidebar-secondary">
           <div className="flex items-center justify-between p-2">
             <div className="flex items-center flex-1">
-              <div className="relative w-8 h-8">
+              <div className="relative w-8 h-8  ">
                 {currentUser.avatar ? (
-                  <Image
-                    src={currentUser.avatar}
-                    alt={currentUser.username}
-                    fill
-                    sizes="32px"
-                    className="rounded-full object-cover"
-                    priority
-                  />
+                  <>
+                    <Image
+                      src={currentUser.avatar}
+                      alt={currentUser.username}
+                      fill
+                      sizes="32px"
+                      className="rounded-full object-cover"
+                      priority
+                    />
+                    <StatusIndicator userId={currentUser.userId} />
+                  </>
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center ">
                     <User className="h-4 w-4 text-white" />
                   </div>
                 )}

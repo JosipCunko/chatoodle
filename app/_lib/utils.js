@@ -1,7 +1,13 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { toast } from "react-hot-toast";
-import { differenceInMinutes, format, isToday, isYesterday } from "date-fns";
+import {
+  differenceInDays,
+  differenceInMinutes,
+  format,
+  isToday,
+  isYesterday,
+} from "date-fns";
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -68,3 +74,9 @@ export const shouldCombineMessages = (currentMsg, prevMsg) => {
 export const formatMessageDate = (date) => {
   return format(new Date(date), "h:mm a");
 };
+
+export function generateRandomInt8() {
+  // int8 is an 8-byte integer (up to 2^63 - 1 for signed, but we'll use JS safe integers)
+  // We'll generate a random number between 1 and Number.MAX_SAFE_INTEGER.
+  return crypto.getRandomValues(new Uint32Array(1))[0];
+}

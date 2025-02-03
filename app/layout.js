@@ -2,6 +2,7 @@ import GlobalContextProvider from "./_components/GlobalContextProvider";
 import "@/app/_styles/globals.css";
 import { Nunito } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import StatusHandler from "./_components/StatusHandler";
 
 export const metadata = {
   title: "Chatoodle - Connect instatly with your friends",
@@ -20,7 +21,10 @@ export default function RootLayout({ children }) {
         className={`${nunito.className} w-full max-w-[2000px] mx-auto h-full border border-border`}
       >
         <GlobalContextProvider>
-          <main className="flex h-full bg-background">{children}</main>
+          <main className="flex h-full bg-background">
+            <StatusHandler />
+            {children}
+          </main>
         </GlobalContextProvider>
         <Toaster
           position="top-right"

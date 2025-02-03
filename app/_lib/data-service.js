@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { successToast } from "./utils";
 
 export async function getAllUsers() {
   const { data, error } = await supabase.from("Users").select("*");
@@ -32,7 +33,7 @@ export async function getUserById(userId) {
         // Fetch the actual user data for this contact
         const { data: contactUser, error: contactError } = await supabase
           .from("Users")
-          .select("userId, username, avatar, status")
+          .select("*")
           .eq("userId", contact.contactId)
           .single();
 
@@ -88,17 +89,43 @@ export async function getContactsByUserId(userId) {
   return userData.contacts || [];
 }
 
-export async function getMessagesBetweenUsers(userId1, userId2) {
+export async function getMessagesBetweenUsers(currentUserId, otherUserId) {
   const { data, error } = await supabase
     .from("Messages")
     .select("*")
     .or(
-      `and(sent_from_id.eq.${userId1},sent_to_id.eq.${userId2}),and(sent_from_id.eq.${userId2},sent_to_id.eq.${userId1})`
+      `and(sent_from_id.eq.${currentUserId},sent_to_id.eq.${otherUserId}),and(sent_from_id.eq.${otherUserId},sent_to_id.eq.${currentUserId})`
     )
     .order("created_at", { ascending: true });
 
   if (error) throw new Error(error.message);
   return data;
+}
+
+export async function getGroupMessages(groupId) {
+  // First, get the group to retrieve the messages array
+  const { data: group, error: groupError } = await supabase
+    .from("Groups")
+    .select("messages")
+    .eq("groupId", groupId)
+    .single();
+
+  if (groupError) throw new Error(groupError.message);
+
+  // If there are no messages, return an empty array
+  if (!group || !group.messages || group.messages.length === 0) {
+    return [];
+  }
+
+  // Now, fetch the messages from the Messages table using the message IDs
+  const { data: messages, error: messagesError } = await supabase
+    .from("Messages")
+    .select("*")
+    .in("messageId", group.messages); // Use the message IDs from the group
+
+  if (messagesError) throw new Error(messagesError.message);
+
+  return messages;
 }
 
 export async function getLastMessageForContact(userId, otherUserId) {
@@ -170,18 +197,97 @@ export async function createContact(userId, newContact) {
 
   if (updateError) throw new Error(updateError.message);
 }
+export async function createGroup(group) {
+  // First verify if the groupName exists
+  const { data: existingGroup, error: groupsError } = await supabase
+    .from("Groups")
+    .select("*")
+    .eq("groupName", group.groupName);
 
+  if (groupsError) {
+    throw new Error(groupsError.message);
+  }
+  if (existingGroup.length > 0) {
+    throw new Error("Group with that name already exists");
+  }
+
+  // Add the new group to the "Groups" table
+  const { error: insertError } = await supabase.from("Groups").insert([
+    {
+      groupId: group.groupId,
+      groupName: group.groupName,
+      users: group.users,
+      messages: group.messages,
+      logo: group.logo,
+      admin: group.admin,
+    },
+  ]);
+
+  if (insertError) {
+    throw new Error(insertError.message);
+  }
+}
+
+// New function to subscribe to real-time updates
 export function subscribeToMessages(callback) {
   return supabase
     .channel("messages")
     .on(
       "postgres_changes",
       {
-        event: "INSERT",
+        event: "*", // Listen to all events (INSERT, UPDATE, DELETE)
         schema: "public",
         table: "Messages",
       },
-      (payload) => callback(payload)
+      (payload) => {
+        callback({
+          ...payload,
+          eventType: payload.eventType,
+        });
+      }
+    )
+
+    .subscribe();
+}
+
+export async function subscribeToGroupMessages(groupId, callback) {
+  return supabase
+    .channel(`group-messages-${groupId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "Messages",
+        filter: `sent_to_id=eq.${groupId}`,
+      },
+      (payload) => {
+        callback(payload);
+      }
     )
     .subscribe();
 }
+
+export const setUserOnline = async (userId) => {
+  await supabase
+
+    .from("Users")
+
+    .update({ status: "online" })
+
+    .eq("userId", userId);
+};
+
+export const setUserOffline = async (userId) => {
+  await supabase
+
+    .from("Users")
+
+    .update({ status: "offline" })
+
+    .eq("userId", userId);
+};
+
+export const setUserAway = async (userId) => {
+  await supabase.from("Users").update({ status: "away" }).eq("userId", userId);
+};

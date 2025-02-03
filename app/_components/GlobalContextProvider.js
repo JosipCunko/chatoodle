@@ -10,6 +10,7 @@ export default function GlobalContextProvider({ children }) {
   const [darkMode, setDarkMode] = useState(true);
   const [chatBackground, setChatBackground] = useState("bg-background/100");
   const [customBackground, setCustomBackground] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
 
   // Load saved background preferences
   useEffect(() => {
@@ -55,23 +56,23 @@ export default function GlobalContextProvider({ children }) {
     });
   }
 
+  const value = {
+    selectedContact,
+    setSelectedContact,
+    showUserForm,
+    setShowUserForm,
+    darkMode,
+    toggleDarkMode,
+    chatBackground,
+    updateChatBackground,
+    customBackground,
+    updateCustomBackground,
+    selectedGroup,
+    setSelectedGroup,
+  };
+
   return (
-    <GlobalContext.Provider
-      value={{
-        selectedContact,
-        setSelectedContact,
-        showUserForm,
-        setShowUserForm,
-        darkMode,
-        toggleDarkMode,
-        chatBackground,
-        updateChatBackground,
-        customBackground,
-        updateCustomBackground,
-      }}
-    >
-      {children}
-    </GlobalContext.Provider>
+    <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>
   );
 }
 

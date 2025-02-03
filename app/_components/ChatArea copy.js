@@ -3,19 +3,19 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { Send, Paperclip } from "lucide-react";
 import { useGlobalContext } from "./GlobalContextProvider";
-import { sendGroupMessageAction, sendMessageAction } from "@/app/_lib/actions";
+import { sendMessageAction, sendGroupMessageAction } from "@/app/_lib/actions";
 import {
-  getGroupMessages,
   getMessagesBetweenUsers,
-  subscribeToGroupMessages,
   subscribeToMessages,
+  getGroupMessages,
+  subscribeToGroupMessages,
 } from "@/app/_lib/data-service";
 import { errorToast } from "@/app/_lib/utils";
 import Messages from "./Messages";
 import Spinner from "./Spinner";
 import { Tooltip } from "react-tooltip";
 import { supabase } from "@/app/_lib/supabase";
-import ChatInfo from "./ChatInfo";
+import UserInfo from "./ChatInfo";
 
 export default function ChatArea({ currentUserId }) {
   const { selectedContact, selectedGroup, chatBackground, customBackground } =
@@ -36,61 +36,24 @@ export default function ChatArea({ currentUserId }) {
   useEffect(() => {
     async function loadMessages() {
       try {
-        if (selectedContact && !selectedGroup) {
+        if (selectedContact) {
           const msgs = await getMessagesBetweenUsers(
             currentUserId,
             selectedContact.userId
           );
           setMessages(msgs);
-        } else if (selectedGroup && !selectedContact) {
+        } else if (selectedGroup) {
           const msgs = await getGroupMessages(selectedGroup.groupId);
           setMessages(msgs);
         }
       } catch (error) {
-        console.error("Failed to load messages:", error);
-        errorToast("Failed to load messages");
+        console.error("Error loading messages:", error);
       }
     }
 
     loadMessages();
 
-    // Subscribe to real-time updates
     let subscription;
-    /*subscription = subscribeToMessages((payload) => {
-      const newMessage = payload.new;
-      const oldMessage = payload.old;
-      const eventType = payload.eventType;
-
-      // Handle message updates (emoji changes)
-      if (eventType === "UPDATE") {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.messageId === newMessage.messageId ? newMessage : msg
-          )
-        );
-        return;
-      }
-
-      // Handle new messages
-      if (eventType === "INSERT") {
-        // Add message if it's part of the current conversation
-        if (
-          (newMessage.sent_from_id === currentUserId &&
-            newMessage.sent_to_id === selectedContact.userId) ||
-          (newMessage.sent_from_id === selectedContact.userId &&
-            newMessage.sent_to_id === currentUserId)
-        ) {
-          setMessages((prev) => {
-            // Check if message already exists to prevent duplicates
-            const messageExists = prev.some(
-              (msg) => msg.messageId === newMessage.messageId
-            );
-            if (messageExists) return prev;
-            return [...prev, newMessage];
-          });
-        }
-      }
-    });*/
     async function setupSubscription() {
       if (selectedContact) {
         subscription = subscribeToMessages((payload) => {
@@ -110,12 +73,6 @@ export default function ChatArea({ currentUserId }) {
           (payload) => {
             if (payload.eventType === "INSERT") {
               setMessages((prev) => [...prev, payload.new]);
-            } else if (payload.eventType === "UPDATE") {
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.messageId === payload.new.messageId ? payload.new : msg
-                )
-              );
             }
           }
         );
@@ -124,11 +81,8 @@ export default function ChatArea({ currentUserId }) {
 
     setupSubscription();
 
-    // Cleanup subscription when component unmounts or chat changes
     return () => {
-      if (subscription) {
-        subscription.unsubscribe();
-      }
+      subscription?.unsubscribe();
     };
   }, [currentUserId, selectedContact, selectedGroup]);
 
@@ -235,7 +189,6 @@ export default function ChatArea({ currentUserId }) {
           <Messages
             currentUserId={currentUserId}
             selectedContact={selectedContact}
-            selectedGroup={selectedGroup}
             messages={messages}
             customBackground={customBackground}
             chatBackground={chatBackground}
@@ -290,7 +243,7 @@ export default function ChatArea({ currentUserId }) {
       {/* Add UserInfo component */}
       {selectedContact || selectedGroup ? (
         <Suspense fallback={<Spinner />}>
-          <ChatInfo
+          <UserInfo
             selectedContact={selectedContact}
             selectedGroup={selectedGroup}
             messages={messages}

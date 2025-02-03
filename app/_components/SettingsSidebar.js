@@ -8,8 +8,11 @@ import {
   LogOut,
   ArrowLeftCircle,
   PaintBucket,
+  Code,
 } from "lucide-react";
 import { signOutAction } from "../_lib/actions";
+import InviteButton from "./InviteButton";
+import { Tooltip } from "react-tooltip";
 
 export default function SettingsSidebar() {
   const pathname = usePathname();
@@ -59,11 +62,27 @@ export default function SettingsSidebar() {
 
       {/* Action Buttons */}
       <div className="p-3 border-t border-border">
-        <button className="w-full flex items-center px-2 py-2 rounded-md text-text-secondary hover:bg-accent hover:text-text-primary transition-colors mb-1">
-          <UserPlus className="h-5 w-5 mr-3" />
-          <span className="text-sm font-medium">Invite a Friend</span>
-        </button>
+        <div className="tooltip-container">
+          <Link
+            href="https://github.com/JosipCunko/chatoodle"
+            className="w-full flex items-center px-2 py-2 rounded-md text-text-secondary hover:bg-accent hover:text-text-primary transition-colors"
+            data-tooltip-id="tooltip-code"
+            data-tooltip-content="See the code on Github"
+          >
+            <Code className="h-5 w-5 mr-3" />
+            <span className="text-sm font-medium">How to build this app?</span>
+          </Link>
 
+          <Tooltip
+            id="tooltip-code"
+            className="tooltip-diff-arrow"
+            classNameArrow="tooltip-arrow"
+            place="top"
+            effect="solid"
+          />
+        </div>
+
+        <InviteButton />
         <form action={signOutAction}>
           <button className="w-full flex items-center px-2 py-2 rounded-md text-text-secondary hover:bg-accent hover:text-text-primary transition-colors">
             <LogOut className="h-5 w-5 mr-3" />
