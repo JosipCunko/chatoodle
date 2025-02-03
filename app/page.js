@@ -95,10 +95,13 @@ export default async function Home() {
             </div>
           </div>
           <div className="flex-1 relative">
-            <img
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-HE51SYz7MPgUWGGcFFV1sMS8rJPC8W.png"
+            <Image
+              src=""
               alt="Chat App Interface"
+              width={1200}
+              height={800}
               className="w-full"
+              priority
             />
           </div>
         </div>

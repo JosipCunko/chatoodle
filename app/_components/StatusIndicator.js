@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/app/_lib/supabase";
 
-const StatusIndicator = ({ userId, size = "md" }) => {
-  const [status, setStatus] = useState("offline");
+const StatusIndicator = ({
+  userId,
+  size = "md",
+  defaultStatus = "offline",
+}) => {
+  const [status, setStatus] = useState(defaultStatus);
 
   useEffect(() => {
     // Subscribe to status changes

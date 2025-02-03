@@ -80,3 +80,15 @@ export function generateRandomInt8() {
   // We'll generate a random number between 1 and Number.MAX_SAFE_INTEGER.
   return crypto.getRandomValues(new Uint32Array(1))[0];
 }
+
+export const copyToClipboard = async (copy, handler) => {
+  try {
+    await navigator.clipboard.writeText(copy);
+
+    handler("✅ Copied!");
+
+    setTimeout(() => handler("Copy URL to clipboard"), 2000);
+  } catch (err) {
+    console.error("Failed to copy URL:", err);
+  }
+};

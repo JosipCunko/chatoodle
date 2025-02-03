@@ -1,5 +1,4 @@
 import { supabase } from "./supabase";
-import { successToast } from "./utils";
 
 export async function getAllUsers() {
   const { data, error } = await supabase.from("Users").select("*");
@@ -270,24 +269,69 @@ export async function subscribeToGroupMessages(groupId, callback) {
 
 export const setUserOnline = async (userId) => {
   await supabase
-
     .from("Users")
-
     .update({ status: "online" })
-
     .eq("userId", userId);
 };
 
 export const setUserOffline = async (userId) => {
   await supabase
-
     .from("Users")
-
     .update({ status: "offline" })
-
     .eq("userId", userId);
 };
 
 export const setUserAway = async (userId) => {
   await supabase.from("Users").update({ status: "away" }).eq("userId", userId);
 };
+
+export async function leaveGroupchat(groupId, userId, userUsername) {
+  const { data: group, fetchError } = await supabase
+    .from("Groups")
+    .select("*")
+    .eq("groupId", groupId)
+    .single();
+
+  if (fetchError) throw fetchError;
+
+  const updateGroupUsers = group.users.filter((uid) => uid !== userId);
+  const { updateError } = await supabase
+    .from("Groups")
+    .update({ users: updateGroupUsers })
+    .eq("groupId", groupId);
+
+  if (updateError) throw updateError;
+
+  // Create system message
+  const { data: message, error: messageError } = await supabase
+    .from("Messages")
+    .insert({
+      sent_to_id: groupId,
+      content: `User ${userUsername} has left the groupchat`,
+      system_message: true,
+      sent_from_id: null,
+    })
+    .select()
+    .single();
+
+  if (messageError) throw messageError;
+
+  const { insertError } = await supabase
+    .from("Groups")
+    .update({ messages: [...group.messages, message.messageId] })
+    .eq("groupId", groupId);
+
+  if (insertError) throw insertError;
+}
+
+export async function loadAvatarFromMessageId(messageId) {
+  const { data: messageData, error: errorMessage } = await supabase
+    .from("Messages")
+    .select("*")
+    .eq("messageId", messageId)
+    .single();
+
+  console.log(messageData);
+
+  if (errorMessage) throw errorMessage;
+}

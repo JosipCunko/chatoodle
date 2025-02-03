@@ -8,6 +8,7 @@ import {
 } from "../_lib/utils";
 import { updateMessageEmojiAction } from "@/app/_lib/actions";
 import Image from "next/image";
+import { User } from "lucide-react";
 
 const EMOJI_LIST = ["👍", "😀", "😭", "❌", "🤡"];
 
@@ -98,6 +99,28 @@ function Messages({
                   const isFromCurrentUser =
                     message.sent_from_id === currentUserId;
 
+                  if (message.system_message === true) {
+                    const action = message.content.split(" has")[1];
+
+                    const username = message.content
+                      .split("User ")[1]
+                      ?.split(" has")[0];
+                    return (
+                      <div
+                        className="text-center my-4"
+                        key={`${message.messageId}-${index}`}
+                      >
+                        <p className="text-xs text-text-secondary mb-1">
+                          {formatMessageDate(message.created_at)}
+                        </p>
+                        <span className="inline-block px-3 py-1 text-sm text-text-secondary bg-surface rounded-full">
+                          User <span className="text-primary">{username}</span>{" "}
+                          has {action}
+                        </span>
+                      </div>
+                    );
+                  }
+
                   return (
                     <div
                       key={`${message.messageId}-${index}`}
@@ -112,10 +135,7 @@ function Messages({
                             isFromCurrentUser ? "justify-end" : "justify-start"
                           } `}
                         >
-                          <div
-                            className="flex gap-1 bg-surface border border-border rounded-full px-2 py-1 shadow-lg
-                          "
-                          >
+                          <div className="flex gap-1 bg-surface border border-border rounded-full px-2 py-1 shadow-lg">
                             {EMOJI_LIST.map((emoji) => (
                               <button
                                 key={emoji}
@@ -136,20 +156,35 @@ function Messages({
                       )}
 
                       <div
-                        className={`flex
-                          ${
-                            isFromCurrentUser ? "justify-end" : "justify-start"
-                          } ${shouldCombine ? "mt-0.5" : "mt-4"}`}
+                        className={`flex ${
+                          isFromCurrentUser ? "justify-end" : "justify-start"
+                        } ${shouldCombine ? "mt-0.5" : "mt-4"}`}
                       >
                         <div
-                          className={`max-w-xs px-4 py-2 rounded-lg
-                          relative 
-                            ${
-                              isFromCurrentUser
-                                ? "bg-primary text-white rounded-br-none"
-                                : "bg-surface text-text-primary border border-border rounded-bl-none"
-                            } ${shouldCombine ? "rounded-t-lg" : ""}`}
+                          className={`max-w-xs px-4 py-2 rounded-lg relative ${
+                            isFromCurrentUser
+                              ? "bg-primary text-white rounded-br-none"
+                              : "bg-surface text-text-primary border border-border rounded-bl-none"
+                          } ${shouldCombine ? "rounded-t-lg" : ""}`}
                         >
+                          {selectedGroup && (
+                            <div className="absolute -bottom-2 -left-4 ">
+                              {message.sent_from?.avatar ? (
+                                <Image
+                                  src={message.sent_from.avatar}
+                                  alt={message.sent_from.username}
+                                  width={24}
+                                  height={24}
+                                  className="rounded-full border border-border w-6 h-6"
+                                />
+                              ) : (
+                                <div className="w-7 h-7 rounded-full bg-surface flex items-center justify-center border border-border">
+                                  <User className="w-5 h-5 text-primary" />
+                                </div>
+                              )}
+                            </div>
+                          )}
+
                           {message.content && (
                             <p className="text-sm">{message.content}</p>
                           )}
@@ -166,10 +201,9 @@ function Messages({
 
                           {message.emoji && (
                             <div
-                              className={`text-base
-                                  bg-surface border border-border rounded-full px-2 py-1 shadow-lg
-                                absolute -top-5
-                                ${isFromCurrentUser ? "-left-4" : "-right-4"}`}
+                              className={`text-base bg-surface border border-border rounded-full px-2 py-1 shadow-lg absolute -top-5 ${
+                                isFromCurrentUser ? "-left-4" : "-right-4"
+                              }`}
                             >
                               {message.emoji}
                             </div>

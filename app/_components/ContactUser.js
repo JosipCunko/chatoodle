@@ -2,9 +2,8 @@ import { Users } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { getLastMessageForContact } from "../_lib/data-service";
-import StatusIndicator from "./StatusIndicator";
 
-function ContactUser({ name, status, avatar, currentUserId, contactUserId }) {
+function ContactUser({ name, avatar, currentUserId, contactUserId }) {
   const [lastMessage, setLastMessage] = useState("");
 
   useEffect(() => {
@@ -42,7 +41,6 @@ function ContactUser({ name, status, avatar, currentUserId, contactUserId }) {
                 className="rounded-full object-cover"
                 priority
               />
-              <StatusIndicator userId={contactUserId} />
             </>
           ) : (
             <Users className="h-8 w-8 rounded-full bg-primary p-1 text-surface" />

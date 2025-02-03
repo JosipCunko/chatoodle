@@ -15,7 +15,7 @@ export default async function Chat() {
     <>
       <SmallSidebar currentUserId={currentUserId} />
       <Sidebar currentUser={currentUser} />
-      <ChatArea currentUserId={currentUserId} />
+      <ChatArea currentUserId={currentUserId} currentUser={currentUser} />
     </>
   );
 }

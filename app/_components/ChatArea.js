@@ -17,9 +17,14 @@ import { Tooltip } from "react-tooltip";
 import { supabase } from "@/app/_lib/supabase";
 import ChatInfo from "./ChatInfo";
 
-export default function ChatArea({ currentUserId }) {
-  const { selectedContact, selectedGroup, chatBackground, customBackground } =
-    useGlobalContext();
+export default function ChatArea({ currentUserId, currentUser }) {
+  const {
+    selectedContact,
+    selectedGroup,
+    setSelectedGroup,
+    chatBackground,
+    customBackground,
+  } = useGlobalContext();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef(null);
@@ -56,41 +61,7 @@ export default function ChatArea({ currentUserId }) {
 
     // Subscribe to real-time updates
     let subscription;
-    /*subscription = subscribeToMessages((payload) => {
-      const newMessage = payload.new;
-      const oldMessage = payload.old;
-      const eventType = payload.eventType;
 
-      // Handle message updates (emoji changes)
-      if (eventType === "UPDATE") {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.messageId === newMessage.messageId ? newMessage : msg
-          )
-        );
-        return;
-      }
-
-      // Handle new messages
-      if (eventType === "INSERT") {
-        // Add message if it's part of the current conversation
-        if (
-          (newMessage.sent_from_id === currentUserId &&
-            newMessage.sent_to_id === selectedContact.userId) ||
-          (newMessage.sent_from_id === selectedContact.userId &&
-            newMessage.sent_to_id === currentUserId)
-        ) {
-          setMessages((prev) => {
-            // Check if message already exists to prevent duplicates
-            const messageExists = prev.some(
-              (msg) => msg.messageId === newMessage.messageId
-            );
-            if (messageExists) return prev;
-            return [...prev, newMessage];
-          });
-        }
-      }
-    });*/
     async function setupSubscription() {
       if (selectedContact) {
         subscription = subscribeToMessages((payload) => {
@@ -198,11 +169,21 @@ export default function ChatArea({ currentUserId }) {
 
       // Send message
       const formData = new FormData();
+      if (selectedContact && !selectedGroup) {
+        formData.append("toId", selectedContact.userId);
+      } else if (!selectedContact && selectedGroup) {
+        formData.append("toId", selectedGroup.groupId);
+        formData.append("groupId", selectedGroup.groupId);
+      }
       formData.append("fromId", currentUserId);
-      formData.append("toId", selectedContact.userId);
       formData.append("mediaUrl", urlData.publicUrl);
 
-      const response = await sendMessageAction(formData);
+      let response;
+      if (selectedContact && !selectedGroup)
+        response = await sendMessageAction(formData);
+      else if (!selectedContact && selectedGroup) {
+        response = await sendGroupMessageAction(formData);
+      }
 
       if (response.error) {
         errorToast(response.error);
@@ -294,6 +275,9 @@ export default function ChatArea({ currentUserId }) {
             selectedContact={selectedContact}
             selectedGroup={selectedGroup}
             messages={messages}
+            currentUser={currentUser}
+            currentUserId={currentUserId}
+            setSelectedGroup={setSelectedGroup}
           />
         </Suspense>
       ) : (

@@ -7,6 +7,7 @@ import {
   setUserOnline,
   updatePhoneNumber,
   createGroup,
+  leaveGroupchat,
 } from "./data-service";
 import { auth, signIn, signOut } from "./auth";
 import { supabase } from "./supabase";
@@ -64,8 +65,6 @@ export async function sendMessageAction(formData) {
     const content = formData.get("content");
     const mediaUrl = formData.get("mediaUrl");
 
-    console.log("Form data from sendMessageAction: ", formData);
-
     const { data, error } = await supabase
       .from("Messages")
       .insert([
@@ -99,7 +98,7 @@ export async function sendGroupMessageAction(formData) {
     const { message } = await sendMessageAction(formData);
     const { messageId } = message;
 
-    //messages column in "Groups" table is an array containing messageId from the "Messages" table. Do I need to link them with the foreign key in supabase?
+    //messages column in "Groups" table is an array containing messageId from the "Messages" table.
 
     const { data: group, error: groupError } = await supabase
       .from("Groups")
@@ -180,7 +179,7 @@ export async function joinGroupAction(formData) {
   try {
     const { data: group, error: groupError } = await supabase
       .from("Groups")
-      .select("groupName, users")
+      .select("*")
       .eq("groupId", groupId)
       .single();
 
@@ -211,6 +210,27 @@ export async function joinGroupAction(formData) {
 
     if (updateError) throw updateError;
 
+    // Create system message
+    const { data: message, error: messageError } = await supabase
+      .from("Messages")
+      .insert({
+        sent_to_id: groupId,
+        content: `User ${user.name} has joined the groupchat`,
+        system_message: true,
+        sent_from_id: null,
+      })
+      .select()
+      .single();
+
+    if (messageError) throw messageError;
+
+    const { insertError } = await supabase
+      .from("Groups")
+      .update({ messages: [...group.messages, message.messageId] })
+      .eq("groupId", groupId);
+
+    if (insertError) throw insertError;
+
     return { success: true };
   } catch (error) {
     console.error("Join group error:", error);
@@ -234,6 +254,21 @@ export async function createGroupAction(formData) {
 
     await createGroup(newGroup);
 
+    revalidatePath("/chat");
+    return { success: true };
+  } catch (error) {
+    console.error("Create group error:", error);
+    return { error: error.message };
+  }
+}
+
+export async function leaveGroupchatAction(
+  groupId,
+  currentUserId,
+  currentUserUsername
+) {
+  try {
+    await leaveGroupchat(groupId, currentUserId, currentUserUsername);
     revalidatePath("/chat");
     return { success: true };
   } catch (error) {

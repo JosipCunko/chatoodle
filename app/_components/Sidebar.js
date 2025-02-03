@@ -121,7 +121,6 @@ export default function Sidebar({ currentUser }) {
                     >
                       <ContactUser
                         name={contact.username}
-                        status={contact.status}
                         avatar={contact.avatar}
                         currentUserId={currentUser.userId}
                         contactUserId={contact.userId}

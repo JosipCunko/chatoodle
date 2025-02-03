@@ -71,7 +71,7 @@ export default function JoinGroupForm({ onClose }) {
               Group ID
             </label>
             <input
-              type="number"
+              type="text"
               id="groupId"
               value={groupId}
               onChange={(e) => setGroupId(e.target.value)}

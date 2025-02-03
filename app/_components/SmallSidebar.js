@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Users, Plus, MessagesSquare, MessageSquareDiff } from "lucide-react";
+import { Users, MessagesSquare, MessageSquarePlus } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 import { useGlobalContext } from "./GlobalContextProvider";
 import { supabase } from "@/app/_lib/supabase";
@@ -100,7 +100,7 @@ export default function SmallSidebar({ currentUserId }) {
         data-tooltip-id="tooltip-create-group"
         data-tooltip-content="Create a group"
       >
-        <MessageSquareDiff className="w-5 h-5" />
+        <MessageSquarePlus className="w-5 h-5" />
       </button>
       <Tooltip
         id="tooltip-create-group"
